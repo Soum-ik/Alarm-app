@@ -12,12 +12,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RadialGradientShader
-import androidx.compose.ui.graphics.Shader
-import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,17 +31,21 @@ fun GlassBackground(
         0.5f to AlarmColors.BgMid,
         1f to AlarmColors.BgBottom,
     )
-    // A radial emerald glow blooming from upper-center.
-    val glow = ShaderBrush(object : ShaderBrush() {
-        override fun createShader(size: androidx.compose.ui.geometry.Size): Shader =
-            RadialGradientShader(
-                center = Offset(size.width * 0.5f, size.height * 0.28f),
-                radius = size.maxDimension * 0.7f,
-                colors = listOf(Color(0x332EE6A6), Color(0x00000000)),
-            )
-    })
     Box(modifier.fillMaxSize().background(vertical)) {
-        Box(Modifier.fillMaxSize().background(glow))
+        // A radial emerald glow blooming from upper-center, sized to the actual layout.
+        Box(
+            Modifier
+                .fillMaxSize()
+                .drawBehind {
+                    drawRect(
+                        Brush.radialGradient(
+                            colors = listOf(Color(0x332EE6A6), Color(0x00000000)),
+                            center = Offset(size.width * 0.5f, size.height * 0.28f),
+                            radius = size.maxDimension * 0.7f,
+                        )
+                    )
+                }
+        )
         content()
     }
 }
