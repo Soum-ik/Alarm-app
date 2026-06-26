@@ -5,7 +5,9 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,9 +24,6 @@ import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,11 +33,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.growthmap.alarm.scan.BarcodeScanner
+import co.growthmap.alarm.ui.theme.AlarmColors
+import co.growthmap.alarm.ui.theme.GlassBackground
+import co.growthmap.alarm.ui.theme.GlassCard
+import co.growthmap.alarm.ui.theme.GlowButton
 
 /**
  * Full-screen Alarm Session UI shown over the lock screen (ADR 0001).
@@ -102,32 +106,32 @@ private fun RingScreen(onDismissed: () -> Unit) {
         if (state.canDismiss) onDismissed()
     }
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(Color(0xFF1B1B2F))
-            .padding(24.dp)
-    ) {
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Spacer(Modifier.height(8.dp))
+    GlassBackground {
+        Column(
+            Modifier.fillMaxSize().padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.height(16.dp))
             Text(
                 if (state.label.isBlank()) "Wake up" else state.label,
-                color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold
+                color = AlarmColors.TextPrimary, fontSize = 32.sp, fontWeight = FontWeight.Bold
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(6.dp))
             Text(
                 "Scan your object to stop the alarm",
-                color = Color(0xFFB9B9D6), fontSize = 15.sp
+                color = AlarmColors.TextSecondary, fontSize = 15.sp
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(20.dp))
 
-            // Live scanner fills the middle.
+            // Live scanner with a glowing emerald frame.
             Box(
                 Modifier
                     .fillMaxWidth()
                     .height(320.dp)
-                    .clip(RoundedCornerShape(20.dp))
+                    .shadow(28.dp, RoundedCornerShape(24.dp), spotColor = AlarmColors.Emerald, ambientColor = AlarmColors.Emerald)
+                    .clip(RoundedCornerShape(24.dp))
                     .background(Color.Black)
+                    .border(BorderStroke(1.5.dp, AlarmColors.GlowStroke), RoundedCornerShape(24.dp))
             ) {
                 if (!state.scanned) {
                     BarcodeScanner { value ->
@@ -143,13 +147,13 @@ private fun RingScreen(onDismissed: () -> Unit) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Icon(
                             Icons.Default.CheckCircle, null,
-                            tint = Color(0xFF5CE6A1), modifier = Modifier.size(96.dp)
+                            tint = AlarmColors.Emerald, modifier = Modifier.size(96.dp)
                         )
                     }
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(24.dp))
 
             ConditionRow(
                 done = state.scanned,
@@ -157,7 +161,7 @@ private fun RingScreen(onDismissed: () -> Unit) {
                 icon = Icons.Default.QrCodeScanner
             )
             if (state.requireCharger) {
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(12.dp))
                 ConditionRow(
                     done = state.charging,
                     label = "Plug phone into a charger",
@@ -168,15 +172,12 @@ private fun RingScreen(onDismissed: () -> Unit) {
             Spacer(Modifier.weight(1f))
 
             if (state.backstopAvailable) {
-                Button(
-                    onClick = onDismissed,
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("Stop anyway (30-min backstop)") }
+                GlowButton(text = "Stop anyway (30-min backstop)", onClick = onDismissed)
             } else {
                 val remaining = ((AlarmSession.BACKSTOP_MILLIS - state.elapsedMillis) / 60000).coerceAtLeast(0)
                 Text(
                     "Emergency stop available in ${remaining + 1} min",
-                    color = Color(0xFF6E6E8F), fontSize = 12.sp
+                    color = AlarmColors.TextMuted, fontSize = 12.sp
                 )
             }
             Spacer(Modifier.height(8.dp))
@@ -186,24 +187,24 @@ private fun RingScreen(onDismissed: () -> Unit) {
 
 @Composable
 private fun ConditionRow(done: Boolean, label: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = if (done) Color(0xFF173D2C) else Color(0xFF26263F)
-        ),
-        modifier = Modifier.fillMaxWidth()
+    GlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        glow = done,
+        cornerRadius = 18,
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(14.dp),
+            Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {
-            Icon(icon, null, tint = if (done) Color(0xFF5CE6A1) else Color(0xFF9A9AC0))
+            Icon(icon, null, tint = if (done) AlarmColors.Emerald else AlarmColors.TextMuted)
             Spacer(Modifier.size(12.dp))
-            Text(label, color = Color.White, modifier = Modifier.weight(1f))
+            Text(label, color = AlarmColors.TextPrimary, modifier = Modifier.weight(1f))
             Icon(
                 if (done) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
                 null,
-                tint = if (done) Color(0xFF5CE6A1) else Color(0xFF55557A)
+                tint = if (done) AlarmColors.Emerald else AlarmColors.TextMuted
             )
         }
     }

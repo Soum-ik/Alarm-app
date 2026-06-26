@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Alarm</string>
+    <string name="app_name">Alearm</string>
     <string name="welcome_title">No more snoozing</string>
     <string name="welcome_body">This alarm won\'t stop until you scan your chosen object and plug your phone into a charger. No snooze. No cheating yourself.</string>
     <string name="welcome_cta">Get started</string>

@@ -1,4 +1,4 @@
-# Alarm — the alarm you can't cheat
+# Alearm — the alarm you can't cheat
 
 An Android alarm app whose alarms don't stop until you **scan a configured object** and
 **plug the phone into a charger**. No snooze. A 30-minute emergency backstop is the only escape.

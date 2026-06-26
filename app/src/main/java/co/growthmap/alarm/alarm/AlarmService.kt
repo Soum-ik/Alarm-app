@@ -61,7 +61,7 @@ class AlarmService : Service() {
         if (alarmId < 0) { stopSelf(); return START_NOT_STICKY }
 
         startMillis = elapsedNow()
-        startForeground(NOTIF_ID, buildNotification("Alarm"))
+        startForeground(NOTIF_ID, buildNotification("Alearm"))
         acquireWakeLock()
         loadAlarmAndStart(alarmId)
         return START_REDELIVER_INTENT
