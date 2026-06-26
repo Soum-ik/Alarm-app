@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alearm — the alarm you can't cheat</title>
+  <meta name="description" content="An Android alarm that doesn't stop until you scan a real object you own and plug in your charger. No snooze. Wake up for real." />
+
+  <!-- Open Graph / social preview -->
+  <meta property="og:title" content="Alearm — the alarm you can't cheat" />
+  <meta property="og:description" content="No snooze. Stops only when you scan a registered object and plug in. For Android." />
+  <meta property="og:type" content="website" />
+
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --panel: #141822;
+      --panel-2: #1c2230;
+      --text: #eef1f6;
+      --muted: #9aa4b6;
+      --accent: #5b8cff;
+      --accent-2: #36e0a0;
+      --danger: #ff6b6b;
+      --radius: 16px;
+      --maxw: 980px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 70% -10%, #1a2233 0%, var(--bg) 55%);
+      color: var(--text);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+
+    /* Header */
+    header { padding: 22px 0; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 18px; }
+    .brand .dot {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid; place-items: center; font-size: 18px;
+    }
+
+    /* Hero */
+    .hero { padding: 48px 0 36px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--panel-2); color: var(--muted);
+      border: 1px solid #2a3346; padding: 6px 12px; border-radius: 999px;
+      font-size: 13px; font-weight: 600; margin-bottom: 18px;
+    }
+    .badge .android { color: var(--accent-2); }
+    h1 { font-size: 46px; line-height: 1.08; margin: 0 0 16px; letter-spacing: -0.02em; }
+    h1 .em { background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .sub { font-size: 18px; color: var(--muted); margin: 0 0 28px; max-width: 36ch; }
+
+    .cta-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, var(--accent), #4a7bff);
+      color: #fff; text-decoration: none; font-weight: 700; font-size: 16px;
+      padding: 15px 24px; border-radius: 12px; border: none; cursor: pointer;
+      box-shadow: 0 8px 24px rgba(91,140,255,0.35);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(91,140,255,0.45); }
+    .btn small { font-weight: 500; opacity: .85; font-size: 12px; }
+    .meta { color: var(--muted); font-size: 13px; }
+
+    /* Phone mockup */
+    .phone {
+      justify-self: center;
+      width: 270px; height: 540px;
+      background: #05070b; border: 10px solid #20262f; border-radius: 38px;
+      box-shadow: 0 30px 60px rgba(0,0,0,.55); overflow: hidden; position: relative;
+    }
+    .phone .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 22px; background: #20262f; border-radius: 0 0 14px 14px; z-index: 2; }
+    .phone .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; background: radial-gradient(400px 300px at 50% 20%, #1a2233, #07090d); }
+    .phone .time { font-size: 54px; font-weight: 800; letter-spacing: -.02em; }
+    .phone .ringing { color: var(--danger); font-weight: 700; letter-spacing: .12em; font-size: 12px; margin-top: 6px; }
+    .phone .hint { color: var(--muted); font-size: 13px; margin-top: 28px; }
+    .phone .scan { margin-top: 18px; width: 90px; height: 90px; border: 3px dashed var(--accent-2); border-radius: 14px; display: grid; place-items: center; font-size: 30px; }
+
+    /* Sections */
+    section { padding: 40px 0; }
+    h2 { font-size: 28px; margin: 0 0 24px; letter-spacing: -0.01em; }
+
+    .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .card { background: var(--panel); border: 1px solid #222a39; border-radius: var(--radius); padding: 22px; }
+    .card .ico { font-size: 24px; margin-bottom: 10px; }
+    .card h3 { margin: 0 0 6px; font-size: 17px; }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    /* Install steps */
+    .steps { counter-reset: step; display: grid; gap: 14px; }
+    .step { display: flex; gap: 16px; background: var(--panel); border: 1px solid #222a39; border-radius: var(--radius); padding: 18px 20px; }
+    .step::before {
+      counter-increment: step; content: counter(step);
+      flex: 0 0 34px; height: 34px; border-radius: 9px;
+      background: var(--panel-2); border: 1px solid #2a3346;
+      display: grid; place-items: center; font-weight: 700; color: var(--accent);
+    }
+    .step h4 { margin: 2px 0 4px; font-size: 16px; }
+    .step p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .note {
+      background: rgba(255,107,107,.08); border: 1px solid rgba(255,107,107,.3);
+      border-radius: var(--radius); padding: 16px 18px; color: #ffd0d0; font-size: 14px;
+    }
+    .note strong { color: #fff; }
+
+    footer { padding: 40px 0 60px; color: var(--muted); font-size: 13px; border-top: 1px solid #1c2230; margin-top: 20px; }
+    footer a { color: var(--accent); }
+
+    @media (max-width: 760px) {
+      .hero { grid-template-columns: 1fr; gap: 28px; text-align: center; }
+      .sub { margin-left: auto; margin-right: auto; }
+      .cta-row { justify-content: center; }
+      .features { grid-template-columns: 1fr; }
+      h1 { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand"><span class="dot">⏰</span> Alearm</div>
+    </header>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div>
+        <span class="badge">📱 <span class="android">For Android 8.0+</span> · iPhone not supported</span>
+        <h1>The alarm you <span class="em">can't cheat</span>.</h1>
+        <p class="sub">No snooze. It rings until you scan a real object you own <em>and</em> plug in your charger. You have to actually get up.</p>
+        <div class="cta-row">
+          <!-- TODO: replace href with your GitHub Release asset URL once uploaded -->
+          <a class="btn" id="download" href="#install"
+             href-release="https://github.com/Soum-ik/Alarm-app/releases/latest/download/alearm.apk">
+            ⬇ Download for Android <small>v1.0 · APK</small>
+          </a>
+        </div>
+        <p class="meta" style="margin-top:14px;">Free · ~15&nbsp;MB · Installs directly (no Play Store yet)</p>
+      </div>
+
+      <div class="phone" aria-hidden="true">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="time">7:00</div>
+          <div class="ringing">● ALARM RINGING</div>
+          <div class="hint">Scan your registered object to dismiss</div>
+          <div class="scan">▦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEATURES -->
+    <section>
+      <h2>Why it works</h2>
+      <div class="features">
+        <div class="card"><div class="ico">🔳</div><h3>Scan to dismiss</h3><p>Register something you own — a water bottle, a book, a barcode across the room. The alarm stops only when you scan that exact object.</p></div>
+        <div class="card"><div class="ico">🔌</div><h3>Charger gate</h3><p>It also won't stop until the phone is plugged in — so you can't silence it from bed.</p></div>
+        <div class="card"><div class="ico">🚫</div><h3>No snooze</h3><p>There's no snooze button. The only escape is a 30-minute emergency backstop.</p></div>
+        <div class="card"><div class="ico">🔁</div><h3>Survives reboot</h3><p>Re-arms after a restart or app kill. It's reliable, but it never fights uninstall — you stay in control.</p></div>
+      </div>
+    </section>
+
+    <!-- INSTALL -->
+    <section id="install">
+      <h2>How to install</h2>
+      <p class="meta" style="margin-top:-12px;margin-bottom:20px;">
+        Alearm installs directly from this page (it's not on the Play Store yet), so Android will
+        ask you to confirm a few things. This is normal for direct downloads.
+      </p>
+      <div class="steps">
+        <div class="step"><div><h4>Download the APK</h4><p>Tap the <strong>Download for Android</strong> button above on your phone.</p></div></div>
+        <div class="step"><div><h4>Allow the install</h4><p>Open the downloaded file. If Android warns about “unknown sources”, tap <strong>Settings → Allow from this source</strong>, then go back.</p></div></div>
+        <div class="step"><div><h4>Confirm & install</h4><p>Dismiss the Play Protect scan prompt if it appears, then tap <strong>Install</strong>.</p></div></div>
+        <div class="step"><div><h4>Grant permissions</h4><p>Open Alearm and allow <strong>Camera</strong> (to scan objects) and <strong>Alarms & notifications</strong> so it can wake you.</p></div></div>
+      </div>
+      <p class="note" style="margin-top:18px;">
+        <strong>Heads up:</strong> Alearm is Android-only. It cannot be installed on an iPhone or iPad —
+        Apple doesn't allow apps from outside the App Store.
+      </p>
+    </section>
+
+    <footer>
+      <div class="wrap" style="padding:0;">
+        Alearm · Built by <a href="https://growthmap.co">growthmap.co</a> ·
+        <a href="https://github.com/Soum-ik/Alarm-app">Source on GitHub</a><br/>
+        The app uses your camera only to scan objects on-device. It runs offline and doesn't upload your data.
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Point the download button at the real release asset.
+    // Until you publish a release, it scrolls to the install instructions.
+    var dl = document.getElementById('download');
+    var release = dl.getAttribute('href-release');
+    if (release) { dl.setAttribute('href', release); }
+  </script>
+</body>
+</html>
