@@ -1,5 +1,6 @@
 package co.growthmap.alarm.alarm
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -46,10 +47,32 @@ import co.growthmap.alarm.scan.BarcodeScanner
  */
 class RingActivity : ComponentActivity() {
 
+    private var dismissed = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         showOverLockScreen()
-        setContent { RingScreen(onDismissed = { AlarmService.stop(this); finish() }) }
+        setContent {
+            RingScreen(onDismissed = {
+                dismissed = true
+                AlarmService.stop(this)
+                finish()
+            })
+        }
+    }
+
+    // If the user presses Home/Recents while the alarm is still ringing, bring the
+    // ring screen back to the front. The only legitimate exits are meeting the
+    // Dismissal Conditions or the 30-min backstop (ADR 0005/0008).
+    override fun onStop() {
+        super.onStop()
+        if (!dismissed && !isFinishing) {
+            val intent = Intent(this, RingActivity::class.java).apply {
+                putExtra(AlarmScheduler.EXTRA_ALARM_ID, AlarmSession.state.value.alarmId)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            }
+            startActivity(intent)
+        }
     }
 
     private fun showOverLockScreen() {

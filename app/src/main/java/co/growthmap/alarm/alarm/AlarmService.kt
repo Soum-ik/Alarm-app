@@ -114,15 +114,19 @@ class AlarmService : Service() {
     }
 
     private fun isCharging(): Boolean {
-        val bm = getSystemService(BATTERY_SERVICE) as BatteryManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // isCharging is the most direct signal.
-            return bm.isCharging
-        }
-        val status = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-            ?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
-        return status == BatteryManager.BATTERY_STATUS_CHARGING ||
+        // Read the sticky battery broadcast: it carries both STATUS and PLUGGED, which
+        // together cover every charging case (AC, USB, wireless) more reliably than
+        // BatteryManager.isCharging alone on some OEM ROMs and emulators.
+        val intent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+        val plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1) ?: -1
+
+        val byStatus = status == BatteryManager.BATTERY_STATUS_CHARGING ||
             status == BatteryManager.BATTERY_STATUS_FULL
+        val byPlugged = plugged == BatteryManager.BATTERY_PLUGGED_AC ||
+            plugged == BatteryManager.BATTERY_PLUGGED_USB ||
+            plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS
+        return byStatus || byPlugged
     }
 
     private fun startSound() {
