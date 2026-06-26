@@ -131,7 +131,11 @@ private fun RingScreen(onDismissed: () -> Unit) {
             ) {
                 if (!state.scanned) {
                     BarcodeScanner { value ->
-                        if (value == state.targetCode) {
+                        // Complete the scan condition only on an exact match to the
+                        // registered target. A null/blank target can never match, so an
+                        // unconfigured alarm cannot be dismissed by a stray barcode.
+                        val target = state.targetCode
+                        if (!target.isNullOrBlank() && value == target) {
                             AlarmSession.update { it.copy(scanned = true) }
                         }
                     }
