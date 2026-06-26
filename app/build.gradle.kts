@@ -1,9 +1,21 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
 }
+
+// Release signing is loaded from keystore.properties (kept out of git).
+// Copy keystore.properties.template -> keystore.properties and fill it in.
+// Without that file, release builds fall back to debug signing (fine for local testing,
+// NOT distributable).
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) load(keystorePropertiesFile.inputStream())
+}
+val hasReleaseSigning = keystorePropertiesFile.exists()
 
 android {
     namespace = "co.growthmap.alarm"
@@ -18,10 +30,25 @@ android {
         vectorDrawables { useSupportLibrary = true }
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Use the release keystore when configured; otherwise fall back to debug.
+            signingConfig = if (hasReleaseSigning) signingConfigs.getByName("release")
+                            else signingConfigs.getByName("debug")
         }
     }
     compileOptions {

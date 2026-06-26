@@ -45,9 +45,12 @@ class AlarmService : Service() {
     private var tickJob: Job? = null
     private var startMillis = 0L
 
+    // ACTION_BATTERY_CHANGED fires on every charge-state transition and carries the
+    // STATUS/PLUGGED extras directly, so we read charging from the intent itself.
+    // This is far more reliable than ACTION_POWER_CONNECTED on OEM ROMs (e.g. MIUI).
     private val chargingReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            refreshCharging()
+            AlarmSession.update { it.copy(charging = chargingFromIntent(intent)) }
         }
     }
 
@@ -80,10 +83,14 @@ class AlarmService : Service() {
             }
             launchUi(alarmId)
             startSound()
-            registerReceiver(chargingReceiver, IntentFilter().apply {
-                addAction(Intent.ACTION_POWER_CONNECTED)
-                addAction(Intent.ACTION_POWER_DISCONNECTED)
-            })
+            // Registering for ACTION_BATTERY_CHANGED returns the current sticky battery
+            // intent immediately AND delivers an update on every later change.
+            val sticky = registerReceiver(
+                chargingReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+            )
+            if (sticky != null) {
+                AlarmSession.update { it.copy(charging = chargingFromIntent(sticky)) }
+            }
             runTicker()
         }
     }
@@ -109,18 +116,19 @@ class AlarmService : Service() {
         }
     }
 
-    private fun refreshCharging() {
-        AlarmSession.update { it.copy(charging = isCharging()) }
+    /** Current charging state, read from a fresh sticky battery broadcast. */
+    private fun isCharging(): Boolean {
+        val intent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        return intent != null && chargingFromIntent(intent)
     }
 
-    private fun isCharging(): Boolean {
-        // Read the sticky battery broadcast: it carries both STATUS and PLUGGED, which
-        // together cover every charging case (AC, USB, wireless) more reliably than
-        // BatteryManager.isCharging alone on some OEM ROMs and emulators.
-        val intent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
-        val plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1) ?: -1
-
+    /**
+     * Derives charging state from a battery intent's STATUS/PLUGGED extras. Together they
+     * cover every charging case (AC, USB, wireless) more reliably than BatteryManager.isCharging.
+     */
+    private fun chargingFromIntent(intent: Intent): Boolean {
+        val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+        val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
         val byStatus = status == BatteryManager.BATTERY_STATUS_CHARGING ||
             status == BatteryManager.BATTERY_STATUS_FULL
         val byPlugged = plugged == BatteryManager.BATTERY_PLUGGED_AC ||
